@@ -1,4 +1,4 @@
-# FrameBible-v1.9.0 User Manual
+# FrameBible-v1.9.1 User Manual
 
 ## Production Dashboard
 Open **Export** to see project/Scene readiness.

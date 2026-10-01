@@ -1,4 +1,4 @@
-# FrameBible-v1.9.0 Checklist
+# FrameBible-v1.9.1 Checklist
 
 ## Phase 0 — Planning
 - [x] README.md updated
@@ -56,4 +56,4 @@ Self-review: **9.5 / 10**
 - [ ] browser smoke/E2E — dev server unavailable
 
 ## Final self-review
-**9.3 / 10** for the v1.9.0 implementation scope.
+**9.3 / 10** for the v1.9.1 implementation scope.

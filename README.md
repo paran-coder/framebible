@@ -1,8 +1,8 @@
-# FrameBible-v1.9.0
+# FrameBible-v1.9.1
 
-FrameBible v1.9.0 adds API-ready request manifests and a production-readiness dashboard on top of the v1.8 generation-package workflow.
+FrameBible v1.9.1 adds API-ready request manifests and a production-readiness dashboard on top of the v1.8 generation-package workflow.
 
-## v1.9.0 highlights
+## v1.9.1 highlights
 1. **API Parameter Manifest**
    - Model-specific request templates for Seedance 2.5, Veo 3.1, and Kling.
    - Uses package-relative reference placeholders instead of pretending local browser images are public URLs.

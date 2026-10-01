@@ -1,4 +1,4 @@
-# FrameBible-v1.9.0 Context Notes
+# FrameBible-v1.9.1 Context Notes
 
 ## Product goal
 Turn a Scene package into an operational handoff artifact without violating the browser-only architecture or exposing provider credentials.

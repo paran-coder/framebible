@@ -1,4 +1,4 @@
-# FrameBible-v1.9.0 Implementation Review
+# FrameBible-v1.9.1 Implementation Review
 
 ## Phase 1 — API Parameter Manifest
 Implemented credential-free, provider-shaped request templates for:
@@ -44,4 +44,11 @@ Self-review: **9.5 / 10**
 `npm install` still times out against the package registry in this environment, so dependency-backed Vitest/Vite build and browser smoke/E2E remain unverified here.
 
 ## Final self-review
-**9.3 / 10** for the v1.9.0 implementation scope.
+**9.3 / 10** for the v1.9.1 implementation scope.
+
+
+## v1.9.1 Vercel build patch
+
+- Vercel `tsc -b` failed with `TS2769` in `vitest.config.ts` because `@vitejs/plugin-react` and `vitest/config` resolved incompatible Vite plugin types.
+- Removed the React Vite plugin from the standalone Vitest config. React application builds still use `@vitejs/plugin-react` through `vite.config.ts`.
+- This patch targets the observed TypeScript failure only; a subsequent Vercel deployment is required to reveal any later build-stage errors.
