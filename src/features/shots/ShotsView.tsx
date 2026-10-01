@@ -19,6 +19,7 @@ export function ShotsView() {
   const moveShot = useProjectStore((state) => state.moveShot)
   const [draggedShotId, setDraggedShotId] = useState('')
   const [dragTargetId, setDragTargetId] = useState('')
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
 
   const scene = project.scenes.find((item) => item.id === selectedSceneId) ?? project.scenes[0]
   if (!scene) {
@@ -45,7 +46,7 @@ export function ShotsView() {
 
   return (
     <section className="page shots-page">
-      <PageHeader eyebrow="SHOT DIRECTOR" title="문장을 촬영 가능한 결정으로 바꿉니다." description="샷을 추가·복제·삭제하고 드래그앤드롭으로 재배열합니다. 순서가 바뀌면 Continuity 검사와 Seedance 컴파일 순서도 같이 바뀝니다." action={<span className="composition-ready"><Lightbulb size={15} /> 규칙 기반 대안 3개 준비됨</span>} />
+      <PageHeader eyebrow="SHOT DIRECTOR" title="장면을 촬영 가능한 샷으로 설계합니다." description="Shot 순서, Blocking, Camera, Action을 한 작업공간에서 편집합니다. 변경은 Continuity와 Prompt 출력에 즉시 반영됩니다." action={<button className={`secondary-button composition-toggle ${suggestionsOpen ? 'active' : ''}`} onClick={() => setSuggestionsOpen((value) => !value)}><Lightbulb size={15} /> 구도 제안 {treatments.length}<ChevronDown size={14} /></button>} />
 
       <div className="shot-workspace">
         <aside className="panel shot-browser">
@@ -107,16 +108,19 @@ export function ShotsView() {
         </aside>
       </div>
 
-      <div className="treatment-grid">
-        {treatments.map((treatment) => (
-          <article key={treatment.id} className="treatment-card">
-            <span className="eyebrow">{treatment.name}</span>
-            <h3>{treatment.intent}</h3>
-            <ul>{treatment.changes.map((change) => <li key={change}>{change}</li>)}</ul>
-            <button className="secondary-button" onClick={() => updateShot(scene.id, shot.id, treatment.patch)}>이 구도 적용</button>
-          </article>
-        ))}
-      </div>
+      {suggestionsOpen ? <section className="composition-drawer" aria-label="구도 제안">
+        <div className="composition-drawer-head"><div><span className="eyebrow">COMPOSITION SUGGESTIONS</span><h2>현재 Shot을 위한 대안</h2><p>규칙 기반 대안입니다. 적용하면 Inspector 값만 변경되고 언제든 Undo할 수 있습니다.</p></div><button className="icon-button" aria-label="구도 제안 닫기" onClick={() => setSuggestionsOpen(false)}><ChevronUp size={16} /></button></div>
+        <div className="treatment-grid">
+          {treatments.map((treatment) => (
+            <article key={treatment.id} className="treatment-card">
+              <span className="eyebrow">{treatment.name}</span>
+              <h3>{treatment.intent}</h3>
+              <ul>{treatment.changes.map((change) => <li key={change}>{change}</li>)}</ul>
+              <button className="secondary-button" onClick={() => updateShot(scene.id, shot.id, treatment.patch)}>이 구도 적용</button>
+            </article>
+          ))}
+        </div>
+      </section> : null}
     </section>
   )
 }

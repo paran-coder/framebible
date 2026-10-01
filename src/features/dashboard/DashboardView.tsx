@@ -29,7 +29,7 @@ export function DashboardView() {
 
   return (
     <section className="page dashboard-page">
-      <PageHeader eyebrow="PRODUCTION DASHBOARD" title="Scene이 실제 생성 패키지로 준비됐는지 확인합니다." description="품질을 예측하는 점수가 아니라, FrameBible의 명시적 Capability·Continuity·Package 규칙을 통과했는지 보여줍니다." action={<label className="dashboard-model-select"><span>Target</span><select value={model} onChange={(event) => setModel(event.target.value as GenerationTarget)}><option value="seedance">Seedance 2.5</option><option value="veo">Veo 3.1</option><option value="kling">Kling</option></select></label>} />
+      <PageHeader eyebrow="PRODUCTION DASHBOARD" title="생성 준비 상태를 확인합니다." description="품질 점수가 아니라 Capability·Continuity·Package 규칙의 통과 여부와 다음 조치만 보여줍니다." action={<label className="dashboard-model-select"><span>Target</span><select value={model} onChange={(event) => setModel(event.target.value as GenerationTarget)}><option value="seedance">Seedance 2.5</option><option value="veo">Veo 3.1</option><option value="kling">Kling</option></select></label>} />
 
       <div className="dashboard-summary-grid">
         <article className={`readiness-hero ${readiness.status}`}>

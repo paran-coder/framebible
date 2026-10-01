@@ -273,7 +273,7 @@ export function BlockingBoard({ sceneId, shotId }: { sceneId: string; shotId: st
 
         {displayGeography.characterPlacements.map((item) => <button
           key={item.characterId}
-          className={`blocking-node character-node ${selection.type === 'character' && selection.id === item.characterId ? 'selected' : ''}`}
+          className={`blocking-node character-node ${item.zoneId ? 'zone-bound' : ''} ${selection.type === 'character' && selection.id === item.characterId ? 'selected' : ''}`}
           style={{ left: pct(item.x), top: pct(item.y), transform: `translate(-50%, -50%) rotate(${item.facingDeg}deg)` }}
           aria-label={`${assetName(item.characterId)} 캐릭터 위치. 드래그해서 이동`}
           title={`${assetName(item.characterId)} · facing ${Math.round(item.facingDeg)}°`}
@@ -286,7 +286,7 @@ export function BlockingBoard({ sceneId, shotId }: { sceneId: string; shotId: st
 
         {displayGeography.propPlacements.map((item) => <button
           key={item.propId}
-          className={`blocking-node prop-node ${selection.type === 'prop' && selection.id === item.propId ? 'selected' : ''}`}
+          className={`blocking-node prop-node ${item.zoneId ? 'zone-bound' : ''} ${selection.type === 'prop' && selection.id === item.propId ? 'selected' : ''}`}
           style={{ left: pct(item.x), top: pct(item.y), transform: `translate(-50%, -50%) rotate(${item.rotationDeg}deg)` }}
           aria-label={`${assetName(item.propId)} 소품 위치. 드래그해서 이동`}
           title={assetName(item.propId)}
@@ -299,7 +299,7 @@ export function BlockingBoard({ sceneId, shotId }: { sceneId: string; shotId: st
 
         {camera ? <>
           <button
-            className={`blocking-node camera-node ${selection.type === 'camera' ? 'selected' : ''}`}
+            className={`blocking-node camera-node ${camera.zoneId ? 'zone-bound' : ''} ${selection.type === 'camera' ? 'selected' : ''}`}
             style={{ left: pct(camera.x), top: pct(camera.y), transform: `translate(-50%, -50%) rotate(${camera.directionDeg}deg)` }}
             aria-label={`${shot.title} 카메라 위치. 드래그해서 이동`}
             title={`${Number(camera.focalLengthMm.toFixed(1))}mm · ${Math.round(fov)}° FOV`}

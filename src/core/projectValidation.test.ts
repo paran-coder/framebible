@@ -72,7 +72,7 @@ describe('project import validation', () => {
       if (scene.geography) delete scene.geography.background
     }
     const parsed = parseFrameBibleProject(legacy)
-    expect(parsed?.appVersion).toBe('1.9.0')
+    expect(parsed?.appVersion).toBe('2.0.0')
     expect(parsed?.scenes.every((scene) => Array.isArray(scene.spatialTransitions))).toBe(true)
     expect(parsed?.scenes.every((scene) => scene.geography?.background === undefined)).toBe(true)
   })
@@ -87,7 +87,7 @@ describe('project import validation', () => {
     scene.geography.zones = [zone]
     scene.geography.characterPlacements[0] = { ...scene.geography.characterPlacements[0], x: zone.x, y: zone.y, zoneId: zone.id }
     const parsed = parseFrameBibleProject(legacy)
-    expect(parsed?.appVersion).toBe('1.9.0')
+    expect(parsed?.appVersion).toBe('2.0.0')
     expect(parsed?.scenes[0].geography?.characterPlacements[0].zoneId).toBe(zone.id)
   })
 

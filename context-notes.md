@@ -1,29 +1,51 @@
-# FrameBible-v1.9.1 Context Notes
+# FrameBible v2.0.0 — Context Notes
 
-## Product goal
-Turn a Scene package into an operational handoff artifact without violating the browser-only architecture or exposing provider credentials.
+## Goal
 
-## API manifest principle
-A browser-local ReferenceImage is not an API URL. `api-request.json` therefore uses explicit placeholders such as `package://references/...` for assets that must later be uploaded or hosted by a secure execution layer. The manifest records the target provider endpoint/model and request body shape, but never credentials.
+v2.0.0 is a UI/UX polish release. It preserves the v1.9.1 data model and production features while reorganizing the interface into a calmer, higher-density cinematic production workspace. No new generation capability is added.
 
-## Provider baselines
-### Seedance 2.5 / Higgsfield
-- Text-to-video: prompt, duration, resolution, aspect_ratio, output_format, generate_audio.
-- Image-to-video: image_url and optional end_image_url.
-- Reference-to-video: image_urls/video_urls/audio_urls.
+## Design principles
 
-### Veo 3.1 / Gemini API
-- Model: `veo-3.1-generate-preview` baseline.
-- Request concepts: prompt, image, lastFrame, referenceImages; aspectRatio, durationSeconds, personGeneration, resolution, seed.
-- 4/6/8 seconds; reference images, 1080p and 4K require 8 seconds.
+1. Structure before decoration. Page hierarchy, workspace geometry, and task flow come first.
+2. Light-first, system theme by default. Dark mode remains fully supported.
+3. The active production object must dominate the screen. Secondary suggestions, raw JSON, and setup detail are progressively disclosed.
+4. Use three visual surface levels only: canvas, workspace surface, inset/control. Avoid wrapping every section in a card.
+5. Minimum readable type scale: labels/meta 11–12px, body 14px, section titles 16–18px, page titles 30–34px.
+6. Purposeful semantic color only: green=ready, amber=review, red=blocked/error, teal=active production context.
+7. Inputs look editable; disabled/read-only states are visually distinct.
+8. Keyboard focus and reduced-motion remain supported.
 
-### Kling Open Platform baseline
-- Endpoint `/v1/videos/text2video`.
-- Request concepts: model_name, prompt, negative_prompt, duration, mode, sound, aspect_ratio, optional callback_url/external_task_id/watermark_info.
-- No auth data is included in exported manifests.
+## Information architecture changes
 
-## Production readiness
-Readiness is deterministic and inspectable, not a fake quality score.
-- **Blocked**: hard capability/continuity/data-integrity failure.
-- **Needs Review**: no blocker, but warnings or incomplete production metadata remain.
-- **Ready**: no blockers and no review items under current rules.
+### App shell
+- Refine sidebar proportions, navigation readability, top history bar, page widths, and spacing tokens.
+- Use wider fluid workspaces for Assets/Shots and constrained reading widths for Dashboard/Story/Export.
+
+### Asset Bible
+- Keep left asset library.
+- Replace the long vertical editor with right-side tabs: Overview, Variants, References, Continuity, Prompt.
+- Only the active task is visible at once.
+
+### Story
+- Keep natural-language story flow prominent.
+- Collapse provider/key setup into a compact AI connection control and optional settings disclosure.
+- Reduce warning prominence and tighten scene editing density.
+
+### Shots
+- Preserve the successful three-column structure.
+- Make Blocking Board the visual center.
+- Move composition suggestions into a collapsible drawer.
+- Clarify selected/linked/locked/warning states.
+
+### Export
+- Reframe around “Generation Package”.
+- Add tabs: Prompt, API, References, Package.
+- Raw JSON is secondary and appears only in API view.
+- Keep capability, continuity, contact sheet, and package generation intact.
+
+## Non-goals
+- No schema migration.
+- No new model adapters.
+- No new AI providers.
+- No direct browser video generation.
+- No server/backend.

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, Clock3, KeyRound, MapPin, Plus, ShieldAlert, Sparkles, Trash2, UsersRound, WandSparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, Clock3, KeyRound, MapPin, Plus, Settings2, ShieldAlert, Sparkles, Trash2, UsersRound, WandSparkles, X } from 'lucide-react'
 import { PageHeader } from '../../components/PageHeader'
 import { StatusPill } from '../../components/StatusPill'
 import { generateAIStoryDraft, type AIStoryDraft } from '../../ai/story'
@@ -16,6 +16,8 @@ export function StoryView() {
   const [aiDraft, setAiDraft] = useState<AIStoryDraft | null>(null)
   const [aiStatus, setAiStatus] = useState('')
   const [running, setRunning] = useState(false)
+  const [aiConfigOpen, setAiConfigOpen] = useState(false)
+  const [sceneOverviewOpen, setSceneOverviewOpen] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const project = useProjectStore((state) => state.project)
   const selectedSceneId = useProjectStore((state) => state.selectedSceneId)
@@ -75,7 +77,7 @@ export function StoryView() {
 
   return (
     <section className="page">
-      <PageHeader eyebrow="STORY ARCHITECT" title="아이디어를 생성 가능한 장면 구조로 바꿉니다." description="규칙 기반 초안은 항상 로컬에서 작동하고, Scene 사이의 의도된 상태 변화는 Transition Event로 기록합니다." />
+      <PageHeader eyebrow="STORY ARCHITECT" title="아이디어를 장면으로 구조화합니다." description="로컬 규칙 기반 초안과 선택적 AI 보조를 사용하고, Scene 사이의 의도된 변화는 Transition Event로 기록합니다." />
 
       <div className="idea-builder panel">
         <div className="idea-copy"><span className="eyebrow">NATURAL LANGUAGE INPUT</span><h2>무슨 영상인지 평범한 문장으로 적으세요.</h2><p>AI 키가 없어도 규칙 기반 Beat를 만들 수 있습니다. BYOK는 선택 기능입니다.</p></div>
@@ -83,14 +85,21 @@ export function StoryView() {
         <div className="idea-actions"><button className="secondary-button" onClick={() => setShowDraft(true)}><Sparkles size={16} /> 로컬 비트 만들기</button><button className="primary-button" disabled={running} onClick={runAI}><WandSparkles size={16} /> {running ? 'AI 생성 중…' : 'AI 스토리 만들기'}</button></div>
       </div>
 
-      <div className="ai-config panel">
-        <div className="ai-config-head"><div><span className="eyebrow">EXPERIMENTAL · SESSION-ONLY BYOK</span><h2>AI Provider</h2></div><StatusPill tone="warning"><ShieldAlert size={12} /> Browser direct</StatusPill></div>
-        <div className="ai-config-grid">
-          <label><span>Provider</span><select value={providerId} onChange={(event) => setProvider(event.target.value as AIProviderId)}><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
-          <label><span>Model</span><input value={model} onChange={(event) => setModel(event.target.value)} /></label>
-          <label className="api-key-field"><span><KeyRound size={14} /> {activeProvider.config.apiKeyLabel}</span><div><input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="현재 탭의 메모리에만 유지" /><button type="button" onClick={clearKey}>지우기</button></div></label>
+      <div className={`ai-connection ${aiConfigOpen ? 'open' : ''}`}>
+        <div className="ai-connection-summary">
+          <div className="ai-connection-icon"><WandSparkles size={17} /></div>
+          <div><span className="eyebrow">OPTIONAL AI ASSIST</span><strong>{activeProvider.config.label} · {model}</strong><small>{apiKey ? '키가 현재 세션 메모리에 설정됨' : '키 없음 · 로컬 규칙 기반 기능은 계속 사용 가능'}</small></div>
+          <StatusPill tone={apiKey && acknowledgedRisk ? 'success' : 'warning'}>{apiKey && acknowledgedRisk ? 'Session ready' : 'Browser direct'}</StatusPill>
+          <button className="secondary-button ai-settings-toggle" onClick={() => setAiConfigOpen((value) => !value)} aria-expanded={aiConfigOpen}><Settings2 size={15} /> 설정 <ChevronDown size={14} /></button>
         </div>
-        <div className="security-note"><ShieldAlert size={16} /><div><strong>프로덕션 권장 방식이 아닙니다.</strong><p>{activeProvider.config.securityNote} FrameBible은 키를 IndexedDB, localStorage, 프로젝트 JSON, ZIP에 저장하지 않습니다.</p><label><input type="checkbox" checked={acknowledgedRisk} onChange={(event) => setAcknowledgedRisk(event.target.checked)} /> 이 탭에서 직접 API를 호출한다는 점을 이해했습니다.</label></div></div>
+        {aiConfigOpen ? <div className="ai-config-body">
+          <div className="ai-config-grid">
+            <label><span>Provider</span><select value={providerId} onChange={(event) => setProvider(event.target.value as AIProviderId)}><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
+            <label><span>Model</span><input value={model} onChange={(event) => setModel(event.target.value)} /></label>
+            <label className="api-key-field"><span><KeyRound size={14} /> {activeProvider.config.apiKeyLabel}</span><div><input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="현재 탭의 메모리에만 유지" /><button type="button" onClick={clearKey}>지우기</button></div></label>
+          </div>
+          <div className="security-note compact"><ShieldAlert size={16} /><div><strong>Browser-direct는 실험적 연결 방식입니다.</strong><p>{activeProvider.config.securityNote} 키는 프로젝트나 브라우저 저장소에 기록하지 않습니다.</p><label><input type="checkbox" checked={acknowledgedRisk} onChange={(event) => setAcknowledgedRisk(event.target.checked)} /> 이 탭에서 직접 API를 호출한다는 점을 이해했습니다.</label></div></div>
+        </div> : null}
         {aiStatus ? <p className="inline-message" role="status">{aiStatus}</p> : null}
       </div>
 
@@ -126,13 +135,19 @@ export function StoryView() {
         <TransitionEventEditor sceneId={scene.id} events={scene.transitionEvents ?? []} assets={project.assets} onAdd={addTransitionEvent} onRemove={removeTransitionEvent} />
       </div>
 
-      <div className="scene-stack">
-        {orderedScenes.map((item) => {
-          const location = project.assets.find((asset) => asset.id === item.locationId)
-          const characterNames = item.characterBindings.map((binding) => { const asset = project.assets.find((candidate) => candidate.id === binding.characterId); if (!asset || asset.type !== 'character') return undefined; const variant = asset.variants.find((candidate) => candidate.id === binding.variantId); return variant ? `${asset.name} · ${variant.name}` : asset.name }).filter(Boolean)
-          return <article key={item.id} className={`panel scene-card ${selectedSceneId === item.id ? 'selected' : ''}`} role="button" tabIndex={0} onClick={() => selectScene(item.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectScene(item.id) } }}><div className="scene-index">{String(item.order).padStart(2, '0')}</div><div className="scene-content"><div className="scene-card-head"><div><span className="eyebrow">{item.emotionalBeat}</span><h2>{item.title}</h2></div><StatusPill>{item.shots.length} shots</StatusPill></div><p className="scene-purpose">{item.purpose}</p><div className="scene-meta"><span><MapPin size={15} />{location?.name ?? 'Unbound'}</span><span><UsersRound size={15} />{characterNames.join(', ') || 'No characters'}</span><span><Clock3 size={15} />{item.durationSec}s · {item.timeOfDay || 'Time TBD'}{item.weather ? ` · ${item.weather}` : ''}</span></div><div className="shot-mini-list">{item.shots.map((shot) => <div key={shot.id} className="shot-mini"><span>{String(shot.order).padStart(2, '0')}</span><strong>{shot.title}</strong><small>{shot.framing} · {shot.focalLength}</small></div>)}</div></div></article>
-        })}
-      </div>
+      <section className={`scene-overview ${sceneOverviewOpen ? 'open' : ''}`}>
+        <button className="scene-overview-toggle" onClick={() => setSceneOverviewOpen((value) => !value)} aria-expanded={sceneOverviewOpen}>
+          <div><span className="eyebrow">SCENE OVERVIEW</span><strong>전체 장면 흐름 보기</strong><small>{orderedScenes.length} scenes · {orderedScenes.reduce((sum, item) => sum + item.shots.length, 0)} shots</small></div>
+          <ChevronDown size={16} />
+        </button>
+        {sceneOverviewOpen ? <div className="scene-stack">
+          {orderedScenes.map((item) => {
+            const location = project.assets.find((asset) => asset.id === item.locationId)
+            const characterNames = item.characterBindings.map((binding) => { const asset = project.assets.find((candidate) => candidate.id === binding.characterId); if (!asset || asset.type !== 'character') return undefined; const variant = asset.variants.find((candidate) => candidate.id === binding.variantId); return variant ? `${asset.name} · ${variant.name}` : asset.name }).filter(Boolean)
+            return <article key={item.id} className={`panel scene-card ${selectedSceneId === item.id ? 'selected' : ''}`} role="button" tabIndex={0} onClick={() => selectScene(item.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectScene(item.id) } }}><div className="scene-index">{String(item.order).padStart(2, '0')}</div><div className="scene-content"><div className="scene-card-head"><div><span className="eyebrow">{item.emotionalBeat}</span><h2>{item.title}</h2></div><StatusPill>{item.shots.length} shots</StatusPill></div><p className="scene-purpose">{item.purpose}</p><div className="scene-meta"><span><MapPin size={15} />{location?.name ?? 'Unbound'}</span><span><UsersRound size={15} />{characterNames.join(', ') || 'No characters'}</span><span><Clock3 size={15} />{item.durationSec}s · {item.timeOfDay || 'Time TBD'}{item.weather ? ` · ${item.weather}` : ''}</span></div><div className="shot-mini-list">{item.shots.map((shot) => <div key={shot.id} className="shot-mini"><span>{String(shot.order).padStart(2, '0')}</span><strong>{shot.title}</strong><small>{shot.framing} · {shot.focalLength}</small></div>)}</div></div></article>
+          })}
+        </div> : null}
+      </section>
     </section>
   )
 }

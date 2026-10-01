@@ -11,11 +11,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { key: 'dashboard', label: 'Dashboard', description: 'Production readiness', icon: Gauge },
-  { key: 'assets', label: 'Asset Bible', description: 'Characters, locations, props', icon: BookOpen },
-  { key: 'story', label: 'Story', description: 'Beats and scenes', icon: Film },
-  { key: 'shots', label: 'Shots', description: 'Camera and composition', icon: Clapperboard },
-  { key: 'export', label: 'Export', description: 'Continuity and prompts', icon: Download }
+  { key: 'dashboard', label: 'Dashboard', description: 'Readiness', icon: Gauge },
+  { key: 'assets', label: 'Asset Bible', description: 'Characters · locations · props', icon: BookOpen },
+  { key: 'story', label: 'Story', description: 'Scenes · continuity', icon: Film },
+  { key: 'shots', label: 'Shots', description: 'Blocking · camera', icon: Clapperboard },
+  { key: 'export', label: 'Export', description: 'Prompts · packages', icon: Download }
 ]
 
 const themeIcons: Record<ThemePreference, LucideIcon> = {

@@ -1,22 +1,39 @@
-# FrameBible-v1.9.1
+# FrameBible v2.0.0
 
-FrameBible v1.9.1 adds API-ready request manifests and a production-readiness dashboard on top of the v1.8 generation-package workflow.
+FrameBible is a local-first browser workspace for AI-film preproduction: asset continuity, story structure, shot design, blocking geography, model-aware prompts, and generation packages.
 
-## v1.9.1 highlights
-1. **API Parameter Manifest**
-   - Model-specific request templates for Seedance 2.5, Veo 3.1, and Kling.
-   - Uses package-relative reference placeholders instead of pretending local browser images are public URLs.
-   - Excludes credentials, callback secrets, and provider tokens.
-2. **Production Dashboard**
-   - Project and Scene statuses: Ready / Needs Review / Blocked.
-   - Status derives from capability errors, continuity errors/warnings, missing generation references, Shot completeness, and package readiness.
-   - Direct navigation to affected Scene/Shot/Export controls.
-3. **Generate Package extension**
-   - Adds `api-request.json` and readiness metadata alongside prompt, manifest, references, and contact sheet.
+## v2.0.0 — Production workspace redesign
 
-## Verified provider baselines
-- Seedance 2.5 via Higgsfield API
-- Veo 3.1 via Gemini API
-- Kling Open Platform text-to-video baseline
+v2.0.0 keeps the v1.9.1 feature set and data model while rebuilding the interface hierarchy for practical production work.
 
-FrameBible generates request templates only; it does not submit video-generation requests from the browser.
+Key changes:
+- unified light-first design language with System theme as the default
+- clearer sidebar, typography, editable states, spacing, and surface hierarchy
+- Asset Bible: left library + tabbed editor for Overview / Variants / References / Continuity / Prompt
+- Story: compact AI connection control and collapsed secondary scene overview
+- Shots: Blocking Board remains the primary surface; composition suggestions are optional
+- Export: Generation Package workspace with Prompt / API / References / Package tabs
+- raw API JSON is no longer the default view
+- wider workspaces for Assets/Shots and calmer constrained widths for reading/review screens
+
+## Stack
+- Vite + React + TypeScript
+- Zustand
+- Dexie / IndexedDB
+- Zod
+- JSZip
+- Lucide React
+- Vitest + React Testing Library
+
+## Local run
+```bash
+npm install
+npm test
+npm run build
+npm run dev
+```
+
+FrameBible is designed as a static browser app. Project data stays in the browser by default. Session-only BYOK credentials are never included in project exports.
+
+## Current QA status
+Source-level syntax and core runtime checks pass. The build environment used to prepare this archive could not reach the npm registry, so a dependency-backed `npm test`, `npm run build`, and browser visual pass remain the final release gate.

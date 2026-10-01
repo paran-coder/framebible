@@ -30,6 +30,7 @@ export function AssetsView() {
   const [newType, setNewType] = useState<AssetType>('character')
   const [uploadMessage, setUploadMessage] = useState('')
   const [selectedVariantId, setSelectedVariantId] = useState('')
+  const [editorTab, setEditorTab] = useState<'overview' | 'variants' | 'references' | 'continuity' | 'prompt'>('overview')
   const fileRef = useRef<HTMLInputElement>(null)
   const variantFileRef = useRef<HTMLInputElement>(null)
   const selected = project.assets.find((asset) => asset.id === selectedAssetId) ?? project.assets[0]
@@ -42,6 +43,10 @@ export function AssetsView() {
     if (selected.type !== 'character') return setSelectedVariantId('')
     if (!selected.variants.some((variant) => variant.id === selectedVariantId)) setSelectedVariantId(selected.variants[0]?.id ?? '')
   }, [selected, selectedVariantId])
+
+  useEffect(() => {
+    if (selected.type !== 'character' && (editorTab === 'variants' || editorTab === 'prompt')) setEditorTab('overview')
+  }, [selected.type, editorTab])
 
   const lockableFields = selected.type === 'character'
     ? ['identityDNA.face', 'identityDNA.hair', 'defaultWardrobe']
@@ -84,91 +89,81 @@ export function AssetsView() {
   }
 
   return (
-    <section className="page">
+    <section className="page page-wide assets-page">
       <PageHeader
         eyebrow="ASSET BIBLE"
-        title="먼저 고정하고, 그 다음 생성합니다."
-        description="인물·장소·소품을 이름 있는 자산으로 관리하고 장면 전체에서 같은 기준을 재사용합니다."
-        action={<div className="header-actions"><select aria-label="새 자산 종류" value={newType} onChange={(event) => setNewType(event.target.value as AssetType)}><option value="character">Character</option><option value="location">Location</option><option value="prop">Prop</option></select><button className="secondary-button" onClick={() => addAsset(newType)}>+ 새 자산</button></div>}
+        title="제작 기준을 먼저 잠급니다."
+        description="캐릭터·장소·소품의 기준을 한 곳에서 관리하고, 장면 전체가 같은 자산 정의를 재사용하게 합니다."
+        action={<div className="header-actions"><select aria-label="새 자산 종류" value={newType} onChange={(event) => setNewType(event.target.value as AssetType)}><option value="character">Character</option><option value="location">Location</option><option value="prop">Prop</option></select><button className="primary-button" onClick={() => addAsset(newType)}><Plus size={15} /> 새 자산</button></div>}
       />
 
-      <div className="media-usage-bar panel" aria-label="레퍼런스 저장용량">
+      <div className="media-usage-bar" aria-label="레퍼런스 저장용량">
         <HardDrive size={16} />
-        <div><strong>{formatBytes(storageEstimate)}</strong><span>예상 프로젝트 데이터 · {referenceCount} references</span></div>
-        <small>이미지 payload {formatBytes(mediaBytes)} · 정적 이미지는 최대 1600px WebP로 자동 최적화</small>
+        <strong>{formatBytes(storageEstimate)}</strong>
+        <span>프로젝트 · {referenceCount} references</span>
+        <small>이미지 {formatBytes(mediaBytes)} · 최대 1600px WebP 자동 최적화</small>
       </div>
 
-      <div className="two-column-grid assets-layout">
-        <div className="panel list-panel">
-          <div className="panel-heading"><div><span className="eyebrow">LIBRARY</span><h2>프로젝트 자산</h2></div><StatusPill>{project.assets.length} assets</StatusPill></div>
+      <div className="assets-workspace">
+        <aside className="asset-library-surface">
+          <div className="workspace-section-head"><div><span className="eyebrow">LIBRARY</span><h2>프로젝트 자산</h2></div><StatusPill>{project.assets.length}</StatusPill></div>
           <div className="asset-list">
             {project.assets.map((asset) => {
               const Icon = iconFor(asset)
               return (
-                <button key={asset.id} className={`asset-row ${asset.id === selected.id ? 'selected' : ''}`} onClick={() => selectAsset(asset.id)}>
-                  <span className="asset-icon"><Icon size={18} /></span>
+                <button key={asset.id} className={`asset-row ${asset.id === selected.id ? 'selected' : ''}`} onClick={() => { selectAsset(asset.id); setEditorTab('overview') }}>
+                  <span className="asset-icon"><Icon size={17} /></span>
                   <span className="asset-row-copy"><small>{assetLabel(asset)}</small><strong>{asset.name}</strong><span>{asset.description || '설명을 추가하세요.'}</span></span>
-                  <span className="lock-summary"><Lock size={13} /> {asset.lockedFields.length}</span>
+                  <span className="lock-summary"><Lock size={12} /> {asset.lockedFields.length}</span>
                 </button>
               )
             })}
           </div>
-        </div>
+        </aside>
 
-        <div className="panel detail-panel">
+        <div className="asset-editor-surface">
           <div className="asset-editor-head">
-            <div><span className="eyebrow">{assetLabel(selected)}</span><h2>자산 편집</h2></div>
-            <button className="danger-button" disabled={project.assets.length <= 1} onClick={onDelete}><Trash2 size={15} /> 삭제</button>
+            <div><span className="eyebrow">{assetLabel(selected)}</span><h2>{selected.name}</h2><p>{selected.description || '이 자산의 제작 기준을 정의하세요.'}</p></div>
+            <button className="danger-button subtle" disabled={project.assets.length <= 1} onClick={onDelete}><Trash2 size={15} /> 삭제</button>
           </div>
 
-          <div className="asset-edit-grid">
-            <EditField label="이름" value={selected.name} onChange={(name) => updateAsset(selected.id, { name })} />
-            <EditField label="설명" value={selected.description} onChange={(description) => updateAsset(selected.id, { description })} multiline />
-            <EditField label="태그" value={selected.tags.join(', ')} onChange={(value) => updateAsset(selected.id, { tags: value.split(',').map((item) => item.trim()).filter(Boolean) })} hint="쉼표로 구분" />
+          <div className="editor-tabs" role="tablist" aria-label="자산 편집 영역">
+            {([['overview', 'Overview'], ['variants', 'Variants'], ['references', 'References'], ['continuity', 'Continuity'], ['prompt', 'Prompt']] as const).map(([key, label]) => (
+              <button key={key} role="tab" aria-selected={editorTab === key} className={editorTab === key ? 'active' : ''} disabled={(key === 'variants' || key === 'prompt') && selected.type !== 'character'} onClick={() => setEditorTab(key)}>{label}</button>
+            ))}
           </div>
 
-          {selected.type === 'character' ? <CharacterFields asset={selected} /> : selected.type === 'location' ? <LocationFields asset={selected} /> : <PropFields asset={selected} />}
+          <div className="asset-editor-body">
+            {editorTab === 'overview' ? <>
+              <div className="asset-edit-grid">
+                <EditField label="이름" value={selected.name} onChange={(name) => updateAsset(selected.id, { name })} />
+                <EditField label="설명" value={selected.description} onChange={(description) => updateAsset(selected.id, { description })} multiline />
+                <EditField label="태그" value={selected.tags.join(', ')} onChange={(value) => updateAsset(selected.id, { tags: value.split(',').map((item) => item.trim()).filter(Boolean) })} hint="쉼표로 구분" />
+              </div>
+              {selected.type === 'character' ? <CharacterFields asset={selected} /> : selected.type === 'location' ? <LocationFields asset={selected} /> : <PropFields asset={selected} />}
+            </> : null}
 
-          <ReferenceSection
-            title="기본 레퍼런스 이미지"
-            references={selected.references}
-            ownerName={selected.name}
-            uploadRef={fileRef}
-            onImages={onImages}
-            onRemove={(referenceId) => removeReference(selected.id, referenceId)}
-          />
-          {uploadMessage ? <p className="inline-message reference-message" role="status">{uploadMessage}</p> : null}
+            {editorTab === 'variants' && selected.type === 'character' ? <VariantEditor character={selected} selectedVariantId={selectedVariantId} setSelectedVariantId={setSelectedVariantId} addVariant={addVariant} duplicateVariant={duplicateVariant} updateVariant={updateVariant} deleteVariant={deleteVariant} variantFileRef={variantFileRef} onVariantImages={onVariantImages} removeVariantReference={removeVariantReference} /> : null}
 
-          {selected.type === 'character' ? (
-            <VariantEditor
-              character={selected}
-              selectedVariantId={selectedVariantId}
-              setSelectedVariantId={setSelectedVariantId}
-              addVariant={addVariant}
-              duplicateVariant={duplicateVariant}
-              updateVariant={updateVariant}
-              deleteVariant={deleteVariant}
-              variantFileRef={variantFileRef}
-              onVariantImages={onVariantImages}
-              removeVariantReference={removeVariantReference}
-            />
-          ) : null}
+            {editorTab === 'references' ? <>
+              <ReferenceSection title="기본 레퍼런스 이미지" references={selected.references} ownerName={selected.name} uploadRef={fileRef} onImages={onImages} onRemove={(referenceId) => removeReference(selected.id, referenceId)} />
+              {uploadMessage ? <p className="inline-message reference-message" role="status">{uploadMessage}</p> : null}
+            </> : null}
 
-          <div className="lock-panel">
-            <div className="panel-heading compact"><div><span className="eyebrow">CONTINUITY LOCKS</span><h3>변경 금지 필드</h3></div></div>
-            {lockableFields.map((field) => {
-              const active = selected.lockedFields.includes(field)
-              return <button key={field} className={`lock-row ${active ? 'locked' : ''}`} onClick={() => toggleAssetLock(selected.id, field)}>{active ? <Lock size={16} /> : <Unlock size={16} />}<span>{field}</span><strong>{active ? 'LOCKED' : 'UNLOCKED'}</strong></button>
-            })}
-          </div>
+            {editorTab === 'continuity' ? <div className="lock-panel tab-section">
+              <div className="section-intro"><span className="eyebrow">CONTINUITY LOCKS</span><h3>변경 금지 필드</h3><p>잠긴 값은 Story와 Shot을 수정해도 제작 기준으로 유지됩니다.</p></div>
+              <div className="lock-list">{lockableFields.map((field) => {
+                const active = selected.lockedFields.includes(field)
+                return <button key={field} className={`lock-row ${active ? 'locked' : ''}`} onClick={() => toggleAssetLock(selected.id, field)}>{active ? <Lock size={16} /> : <Unlock size={16} />}<span>{field}</span><strong>{active ? 'LOCKED' : 'UNLOCKED'}</strong></button>
+              })}</div>
+            </div> : null}
 
-          {selected.type === 'character' ? (
-            <div className="character-package">
-              <div className="panel-heading compact"><div><span className="eyebrow">CHARACTER REFERENCE PACKAGE</span><h3>생성용 기준 프롬프트</h3></div></div>
+            {editorTab === 'prompt' && selected.type === 'character' ? <div className="character-package tab-section">
+              <div className="section-intro"><span className="eyebrow">CHARACTER REFERENCE PACKAGE</span><h3>생성용 기준 프롬프트</h3><p>Master Sheet와 단일 얼굴 Identity Reference를 분리해 사용합니다.</p></div>
               <PromptBlock label="MASTER SHEET" value={compileCharacterSheetPrompt(selected)} />
               <PromptBlock label="IDENTITY REFERENCE" value={compileIdentityReferencePrompt(selected)} />
-            </div>
-          ) : null}
+            </div> : null}
+          </div>
         </div>
       </div>
     </section>
