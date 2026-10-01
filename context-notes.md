@@ -1,51 +1,51 @@
-# FrameBible v2.0.0 — Context Notes
+# FrameBible v2.0.1 — Context Notes
 
 ## Goal
 
-v2.0.0 is a UI/UX polish release. It preserves the v1.9.1 data model and production features while reorganizing the interface into a calmer, higher-density cinematic production workspace. No new generation capability is added.
+v2.0.1 is a focused UI/UX refinement and documentation release. It keeps the v2.0.0 data model and production capabilities while correcting structural problems visible in the deployed Story screen and adding a detailed in-product user manual.
 
-## Design principles
+## Source guidance
 
-1. Structure before decoration. Page hierarchy, workspace geometry, and task flow come first.
-2. Light-first, system theme by default. Dark mode remains fully supported.
-3. The active production object must dominate the screen. Secondary suggestions, raw JSON, and setup detail are progressively disclosed.
-4. Use three visual surface levels only: canvas, workspace surface, inset/control. Avoid wrapping every section in a card.
-5. Minimum readable type scale: labels/meta 11–12px, body 14px, section titles 16–18px, page titles 30–34px.
-6. Purposeful semantic color only: green=ready, amber=review, red=blocked/error, teal=active production context.
-7. Inputs look editable; disabled/read-only states are visually distinct.
-8. Keyboard focus and reduced-motion remain supported.
+The UI review follows the supplied `ui-polish` skill: structure before styling, clarity before decoration, reusable patterns, purposeful interaction, restrained motion, realistic implementation, and a final consistency review.
 
-## Information architecture changes
+## Scope
 
-### App shell
-- Refine sidebar proportions, navigation readability, top history bar, page widths, and spacing tokens.
-- Use wider fluid workspaces for Assets/Shots and constrained reading widths for Dashboard/Story/Export.
+### Story restructuring
+- Replace the wide multi-column idea composer with a vertical task flow: section header → text area → secondary/primary actions.
+- Reduce AI Assist to a compact utility row; keep provider/key details behind disclosure.
+- Simplify the Logline surface so it no longer competes with Scene editing.
+- Replace the horizontal Scene card strip with a scalable Scene Navigator + Scene Editor workspace on wide screens.
+- Split the Scene Editor into Details / Cast & Props / Continuity tabs.
+- Preserve rule-based draft generation, AI draft generation, scene CRUD/reorder, bindings, transition events, and existing data contracts.
 
-### Asset Bible
-- Keep left asset library.
-- Replace the long vertical editor with right-side tabs: Overview, Variants, References, Continuity, Prompt.
-- Only the active task is visible at once.
+### Ongoing visible polish
+- While implementing the Story restructure, fix obvious hierarchy, density, card, overflow, label, and action-consistency problems discovered in Assets, Shots, Export, Dashboard, and the app shell.
+- Do not turn v2.0.1 into a full visual rewrite; prefer targeted reusable improvements.
 
-### Story
-- Keep natural-language story flow prominent.
-- Collapse provider/key setup into a compact AI connection control and optional settings disclosure.
-- Reduce warning prominence and tighten scene editing density.
+### In-product manual
+- Add a dedicated `/manual` page with a detailed user guide.
+- Use a documentation layout: sticky/table-of-contents navigation on desktop, readable article column, anchor links, callouts, keyboard shortcuts, workflow guidance, troubleshooting, and local-first/privacy explanations.
+- Keep the manual available without a backend.
+- Add a visible Manual entry in the app sidebar.
 
-### Shots
-- Preserve the successful three-column structure.
-- Make Blocking Board the visual center.
-- Move composition suggestions into a collapsible drawer.
-- Clarify selected/linked/locked/warning states.
+### Open Graph preparation
+- Add a static `manual.html` entry so social crawlers can read manual-specific metadata without requiring JavaScript execution.
+- Prepare Open Graph / Twitter tags for a future 1200×630 image at `/og/framebible-1200x630.png`.
+- Keep the image file absent until the user provides it; metadata and path are prepared in advance.
+- Use `og:image:width=1200` and `og:image:height=630`.
 
-### Export
-- Reframe around “Generation Package”.
-- Add tabs: Prompt, API, References, Package.
-- Raw JSON is secondary and appears only in API view.
-- Keep capability, continuity, contact sheet, and package generation intact.
+## Architecture decisions
+
+- Preserve schemaVersion 2 and project storage format.
+- Preserve the existing SPA for production editing screens.
+- Add a Vite multi-page entry for `manual.html` and a React manual entry point.
+- Use Vercel `cleanUrls` so the built `manual.html` is served as `/manual` without a catch-all SPA rewrite. The editor does not require URL-based client routing.
+- No server, authentication, analytics, or cloud database is introduced.
 
 ## Non-goals
+
+- No new AI/model capability.
 - No schema migration.
-- No new model adapters.
-- No new AI providers.
-- No direct browser video generation.
-- No server/backend.
+- No video generation backend.
+- No PWA/offline-worker work in this release.
+- No broad visual effects, gradient system, or motion-heavy redesign.

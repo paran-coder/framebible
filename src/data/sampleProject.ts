@@ -3,7 +3,7 @@ import type { Project } from '../core/types'
 export const sampleProject: Project = {
   id: 'project-midnight-hotel',
   schemaVersion: 2,
-  appVersion: '2.0.0',
+  appVersion: '2.0.1',
   title: 'Midnight Hotel',
   logline: 'A courier enters a nearly empty hotel before dawn and realizes the person following her has already checked in.',
   styleDNA: {

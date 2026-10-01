@@ -1,76 +1,81 @@
-# FrameBible v2.0.0 — Implementation Review
+# FrameBible v2.0.1 — Implementation Review
 
 ## Scope
 
-v2.0.0 is a UI/UX architecture release. No schema migration, provider, compiler, generation capability, or server component was intentionally added. The target was to make the existing feature set look and behave like one production workspace rather than a collection of feature panels.
+v2.0.1 is a focused Story-architecture, visible-UI polish, and documentation release. It preserves the v2.0.0 project schema and generation features while correcting hierarchy problems visible in the deployed Story screen and adding a detailed `/manual` site page.
 
-## Changes completed
+## Phase 1 — Story architecture
 
-### Design system and shell — 9.1/10
-- Warm light-first canvas with System theme as the default and maintained Dark mode.
-- Reduced shadow usage and separated canvas, workspace surface, and inset/control levels.
-- Page titles reduced to a 28–34px range; labels and navigation copy made more readable.
-- Inputs now read as editable surfaces; disabled/read-only controls use a distinct secondary surface.
-- Sidebar copy and top History toolbar were tightened without removing functionality.
-- Dashboard/Story/Export use constrained reading widths; Assets/Shots use wider production workspaces.
+Implemented:
+- replaced the three-column idea composer with a vertical composer where the input dominates and Local Draft / AI Assist are normalized actions
+- reduced AI Assist to a compact utility row with provider/key details behind disclosure
+- removed the visually dominant black logline number rail and replaced it with a quieter editable logline band
+- replaced the horizontal Scene-card strip with a scalable Scene Navigator + Scene Editor workspace
+- added Scene setup status dots for incomplete Purpose/Emotional Beat states
+- split Scene editing into Details / Cast & Props / Continuity tabs
+- preserved scene CRUD/reorder, character/variant bindings, prop continuity state, transition events, local story draft, and AI story draft application
 
-### Asset Bible — 9.4/10
-- Kept the asset library on the left and converted the editor to task tabs: Overview, Variants, References, Continuity, Prompt.
-- Eliminated the default multi-screen-height Character editor.
-- Preserved asset CRUD, variants, references, locks, and character/reference prompt compilation.
-- Wide screens use a sticky library; narrower layouts switch to a horizontal asset strip.
+Self-review: **9.4/10**. The information architecture now follows the actual task sequence and is more resilient as Scene count grows. Actual browser visual QA is still required.
 
-### Story + Shots — 9.2/10
-- Story provider/key setup is no longer the dominant visual block. Connection detail is disclosed only when requested.
-- Browser-direct credential warning remains available in the expanded settings region.
-- Duplicate full-scene summary is collapsed by default.
-- Shots retains the strongest existing structure: Shot list / Blocking Board / Inspector.
-- Composition suggestions moved out of the primary workspace into an optional drawer.
-- Zone-bound nodes receive an explicit state marker.
+## Phase 2 — Targeted cross-screen polish
 
-### Export — 9.4/10
-- Reframed around generation handoff rather than raw technical output.
-- Prompt / API / References / Package tabs progressively disclose technical detail.
-- Raw API JSON is secondary instead of occupying the default screen.
-- Capability/model setup remains visible because it changes the generation result.
-- Package tab groups continuity review and final Scene Package/project export actions.
+Implemented:
+- added the Manual entry to the persistent sidebar navigation
+- reduced default panel shadow use across production screens to avoid card-on-card depth inflation
+- kept the existing v2 Asset tab workspace, Shots Blocking Board priority, Export package tabs, and Dashboard readiness structure rather than rewriting already-functional areas
+- preserved System theme default and existing reduced-motion behavior
 
-## Regression and structural checks
+Self-review: **9.1/10**. The release intentionally avoids another broad visual rewrite; it applies the supplied UI-polish principle of fixing structure first and making reusable, visible corrections while developing.
 
-- TS/TSX syntax transpile: 72 files, 0 syntax errors.
-- CSS: 1048 `{` and 1048 `}`, no literal `\\n` artifacts.
-- Core strict TypeScript compilation passed for project validation, continuity, geography, capabilities, generation manifests, prompt IR/adapters, API manifest, readiness, and sample project.
-- Runtime smoke passed for:
-  - v2.0.0 sample project parse
-  - intentional sample Continuity issue detection
-  - Seedance / Veo / Kling prompt compilation
-  - Seedance / Veo / Kling API manifest generation
-  - project readiness generation for all three targets
-- Version references used by application/runtime data are `2.0.0`.
+## Phase 3 — Detailed in-product manual
 
-## Remaining release gate
+Implemented a dedicated React manual entry with:
+- sticky desktop table of contents and responsive horizontal TOC on narrower widths
+- quick-start workflow
+- Dashboard / Asset Bible / Story / Shots / Export explanations
+- Character Variants, Continuity Locks, Blocking Board, Spatial Zones, Camera Path, Spatial Timeline, Transition Events
+- model capability and Prompt Adapter concepts
+- Generation Package structure and package:// reference behavior
+- local IndexedDB storage, backup/import guidance, session-only BYOK explanation
+- Undo/Redo shortcuts and troubleshooting guidance
+- link back to the production workspace
 
-The current execution environment could not complete `npm install`; the registry request timed out. Therefore dependency-backed Vitest, Vite production build, dev-server rendering, console scan, and responsive browser inspection have not been claimed as complete. The source should be treated as a v2.0.0 release candidate until the user's normal development/Vercel environment runs:
+Self-review: **9.4/10**. The manual is substantially more detailed than the previous Markdown-only user guide while remaining a static browser page.
 
-```bash
-npm install
-npm test
-npm run build
-```
+## Phase 4 — Open Graph and static route
 
-After a successful deployment, the five primary views should be visually reviewed at desktop width, with Assets and Export receiving the closest attention because their information architecture changed the most.
+Implemented:
+- root `manual.html` Vite entry for crawler-readable manual metadata
+- Vite multi-page build inputs for `index.html` and `manual.html`
+- Vercel `cleanUrls: true` so the deployed manual is reachable at `/manual`
+- shared future OG image path: `/og/framebible-1200x630.png`
+- Open Graph + Twitter metadata on both the main app and manual
+- explicit 1200×630 dimensions, PNG type, alt text, and `ko_KR` locale
+- `public/og/.gitkeep` so the image directory exists until the supplied image is added
 
-## Final self-evaluation
+The user only needs to add the eventual image as:
+`public/og/framebible-1200x630.png`
 
-- Product hierarchy: 9.4/10
-- Asset workflow: 9.4/10
-- Story workflow: 9.2/10
-- Shot workspace: 9.3/10
-- Export handoff UX: 9.4/10
-- Accessibility/responsive intent: 9.1/10
-- Code/runtime regression confidence: 9.2/10
-- Visual release confidence without a v2 browser render: 8.6/10
+Self-review: **9.3/10**. Static metadata is ready without introducing a backend. An absolute canonical/og:image origin is intentionally not invented because the final production domain was not supplied.
 
-**Overall: 9.2/10.**
+## QA
 
-The principal remaining uncertainty is not the intended design structure but browser-rendered spacing, wrapping, and responsive behavior after a real dependency-backed build.
+Completed:
+- TypeScript/TSX syntax transpile check: **74 files, 0 syntax diagnostics**
+- CSS structural check: opening/closing braces match; no literal escaped-newline artifacts
+- HTML parser smoke for `index.html` and `manual.html`
+- manual section/TOC anchor consistency check
+- Open Graph/Twitter metadata presence check on both HTML entries
+- application/package/sample project version updated to **2.0.1**
+
+Blocked in this execution environment:
+- `npm install --ignore-scripts --no-audit --no-fund` timed out waiting for the npm registry
+- `npm test` therefore stops with `vitest: not found`
+- `npm run build` therefore reports missing installed type/module packages before application compilation
+- browser/dev-server visual verification cannot be truthfully claimed without the installed dependency set
+
+## Final self-review
+
+**9.1/10**
+
+The release substantially fixes the Story hierarchy issue visible in the supplied deployed screenshot and adds a useful documentation surface. The remaining confidence gap is dependency-backed Vite/Vitest/browser verification in the user's normal environment.

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, Clapperboard, Download, Film, Gauge, History as HistoryIcon, LockKeyhole, Moon, Redo2, Sun, Monitor, Undo2, X, type LucideIcon } from 'lucide-react'
+import { BookOpen, BookMarked, Clapperboard, Download, Film, Gauge, History as HistoryIcon, LockKeyhole, Moon, Redo2, Sun, Monitor, Undo2, X, type LucideIcon } from 'lucide-react'
 import { APP_VERSION, type ThemePreference, type ViewKey } from '../core/types'
 import type { HistoryDisplayItem } from '../store/projectStore'
 
@@ -90,6 +90,10 @@ export function AppShell({ projectTitle, activeView, theme, issueCount, saveStat
               </button>
             )
           })}
+          <a className="nav-button manual-nav-link" href="/manual.html">
+            <BookMarked size={18} strokeWidth={1.8} />
+            <span><strong>사용자 매뉴얼</strong><small>가이드 · 단축키 · 문제 해결</small></span>
+          </a>
         </nav>
 
         <div className="sidebar-spacer" />

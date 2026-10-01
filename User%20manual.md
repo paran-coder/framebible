@@ -1,41 +1,25 @@
-# FrameBible v2.0.0 — User Manual
+# FrameBible v2.0.1 — User Manual Source
 
-## Navigation
-Use the left sidebar to move between Dashboard, Asset Bible, Story, Shots, and Export. Theme defaults to **System**. Undo/Redo and History remain in the top workspace bar.
+This Markdown file is the source checklist for the in-product `/manual` page. The website manual is intended to be substantially more detailed than this summary.
 
-## Dashboard
-Use Dashboard as the production readiness overview. Select a target model and review Ready / Needs Review / Blocked scenes. The dashboard reports explicit capability, continuity, and package rules; it does not claim to predict output quality.
+## Recommended workflow
+1. Build the Asset Bible first: characters, variants, locations, props, reference images, and locks.
+2. Use Story to turn a natural-language concept into Scenes and review each Scene's purpose, cast, props, and transitions.
+3. Use Shots to define framing, lenses, camera motion, blocking, spatial zones, and explicit movement transitions.
+4. Use Dashboard to find blockers and review items for the chosen model.
+5. Use Export to validate capabilities, review continuity, inspect prompts, and generate a Scene Package.
 
-## Asset Bible
-Select an asset from the left library, then work in one focused editor tab at a time:
-- **Overview** — identity/location/prop fields
-- **Variants** — character wardrobe and physical-state variants
-- **References** — base reference images
-- **Continuity** — locked fields
-- **Prompt** — character sheet and identity-reference prompt package
+## Story v2.0.1
+Story uses a left Scene Navigator and a right editor on wide screens. The active Scene editor is divided into Details, Cast & Props, and Continuity so long productions remain manageable. AI provider configuration stays secondary to the story itself.
 
-On narrower screens, the asset library becomes a horizontal strip instead of consuming the whole page height.
+## Local-first storage
+FrameBible stores project data in browser IndexedDB. Browser/site-data deletion can remove that local copy, so export project JSON/ZIP backups for important work. API keys used by experimental browser-direct BYOK are session-only and are not written into project exports.
 
-## Story
-Write an idea in natural language, generate a rule-based or AI-assisted draft, and edit the selected Scene. The provider/model/key controls are collapsed by default; open **AI 설정** only when changing the connection. API keys remain session-only. The full scene overview is also optional so the active Scene editor stays dominant.
+## Manual page
+Open `/manual` from the sidebar for the full guide, including quick start, screen-by-screen instructions, continuity concepts, Blocking Board and Spatial Zones, generation packages, backup/restore, keyboard shortcuts, and troubleshooting.
 
-## Shots
-The central Blocking Board is the primary workspace. Reorder/select shots on the left and edit camera/action details in the right Inspector. Zone-linked nodes display a small binding marker. Composition treatments are available from **구도 제안** but remain collapsed during normal blocking work.
+## OG image
+The manual page is prepared for a 1200×630 Open Graph image at:
+`/og/framebible-1200x630.png`
 
-## Export
-Export is organized around a Scene Generation Package. First select the Scene and target model, then confirm model settings. Use the package workspace tabs:
-- **Prompt** — human-readable model prompt
-- **API** — credential-free API parameter manifest / raw JSON
-- **References** — generation reference selection and contact-sheet context
-- **Package** — Continuity review, readiness summary, Scene Package ZIP, Project JSON, and Project ZIP
-
-Raw JSON is available when needed but is no longer the primary view.
-
-## Before deployment
-Run:
-```bash
-npm install
-npm test
-npm run build
-```
-Then visually inspect Dashboard, Assets, Story, Shots, and Export at desktop width and one narrow/mobile width before treating v2.0.0 as release-ready.
+The actual image should be added later without changing the metadata path.

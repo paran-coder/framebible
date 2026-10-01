@@ -1,20 +1,21 @@
-# FrameBible v2.0.0
+# FrameBible v2.0.1
 
-FrameBible is a local-first browser workspace for AI-film preproduction: asset continuity, story structure, shot design, blocking geography, model-aware prompts, and generation packages.
+FrameBible is a local-first browser workspace for AI-film preproduction: character and asset continuity, story structure, shot design, blocking geography, model-aware prompt compilation, and generation packages.
 
-## v2.0.0 — Production workspace redesign
+## v2.0.1 — Story hierarchy + user manual
 
-v2.0.0 keeps the v1.9.1 feature set and data model while rebuilding the interface hierarchy for practical production work.
+This release refines the deployed v2.0 interface without changing the project schema or generation feature set.
 
-Key changes:
-- unified light-first design language with System theme as the default
-- clearer sidebar, typography, editable states, spacing, and surface hierarchy
-- Asset Bible: left library + tabbed editor for Overview / Variants / References / Continuity / Prompt
-- Story: compact AI connection control and collapsed secondary scene overview
-- Shots: Blocking Board remains the primary surface; composition suggestions are optional
-- Export: Generation Package workspace with Prompt / API / References / Package tabs
-- raw API JSON is no longer the default view
-- wider workspaces for Assets/Shots and calmer constrained widths for reading/review screens
+Changes:
+- Story rebuilt around a scalable Scene Navigator + tabbed Scene Editor
+- simpler Idea Composer, AI Assist, and Logline hierarchy
+- normalized local-draft and AI-draft actions
+- targeted de-card/shadow polish across existing production screens
+- persistent sidebar link to a detailed user manual
+- dedicated multi-page `/manual` experience covering workflow, features, storage, security, export, shortcuts, and troubleshooting
+- static Open Graph/Twitter metadata on the app and manual
+- future 1200×630 OG asset slot at `public/og/framebible-1200x630.png`
+- Vite multi-page output so manual metadata is available to crawlers without JavaScript execution
 
 ## Stack
 - Vite + React + TypeScript
@@ -33,7 +34,21 @@ npm run build
 npm run dev
 ```
 
-FrameBible is designed as a static browser app. Project data stays in the browser by default. Session-only BYOK credentials are never included in project exports.
+## Routes
+- `/` — FrameBible production workspace
+- `/manual.html` — manual in local Vite development
+- `/manual` — clean manual URL when deployed on Vercel
 
-## Current QA status
-Source-level syntax and core runtime checks pass. The build environment used to prepare this archive could not reach the npm registry, so a dependency-backed `npm test`, `npm run build`, and browser visual pass remain the final release gate.
+## Open Graph image
+When the 1200×630 image is ready, add it as:
+
+```text
+public/og/framebible-1200x630.png
+```
+
+Both `index.html` and `manual.html` already reference `/og/framebible-1200x630.png`.
+
+FrameBible requires no application backend for project editing. Project data is stored in the browser by default. Session-only BYOK credentials are not included in project JSON or ZIP exports.
+
+## QA status
+Source syntax, CSS structure, HTML metadata, and documentation-route checks pass. Dependency-backed tests/build/browser QA remain to be run in an environment where npm packages can be installed.

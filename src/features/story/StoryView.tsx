@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowDown, ArrowUp, ChevronDown, Clock3, KeyRound, MapPin, Plus, Settings2, ShieldAlert, Sparkles, Trash2, UsersRound, WandSparkles, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, KeyRound, Plus, Settings2, ShieldAlert, Sparkles, Trash2, WandSparkles, X } from 'lucide-react'
 import { PageHeader } from '../../components/PageHeader'
 import { StatusPill } from '../../components/StatusPill'
 import { generateAIStoryDraft, type AIStoryDraft } from '../../ai/story'
@@ -10,6 +10,8 @@ import type { Asset, CharacterAsset, CharacterBinding, ContinuityTransitionEvent
 import { buildRuleBasedStoryDraft } from '../../core/storyRules'
 import { useProjectStore } from '../../store/projectStore'
 
+type SceneEditorTab = 'details' | 'cast' | 'continuity'
+
 export function StoryView() {
   const [idea, setIdea] = useState('서울의 새벽. 한 여자가 오래된 호텔에 들어가고 누군가 자신보다 먼저 도착했다는 사실을 눈치챈다.')
   const [showDraft, setShowDraft] = useState(false)
@@ -17,7 +19,7 @@ export function StoryView() {
   const [aiStatus, setAiStatus] = useState('')
   const [running, setRunning] = useState(false)
   const [aiConfigOpen, setAiConfigOpen] = useState(false)
-  const [sceneOverviewOpen, setSceneOverviewOpen] = useState(false)
+  const [sceneEditorTab, setSceneEditorTab] = useState<SceneEditorTab>('details')
   const abortRef = useRef<AbortController | null>(null)
   const project = useProjectStore((state) => state.project)
   const selectedSceneId = useProjectStore((state) => state.selectedSceneId)
@@ -50,8 +52,14 @@ export function StoryView() {
   useEffect(() => () => abortRef.current?.abort(), [])
 
   const runAI = async () => {
-    if (!apiKey.trim()) return setAiStatus('API 키를 입력하세요.')
-    if (!acknowledgedRisk) return setAiStatus('브라우저 직결 위험을 확인해야 실행할 수 있습니다.')
+    if (!apiKey.trim()) {
+      setAiConfigOpen(true)
+      return setAiStatus('API 키를 입력하세요.')
+    }
+    if (!acknowledgedRisk) {
+      setAiConfigOpen(true)
+      return setAiStatus('브라우저 직결 위험을 확인해야 실행할 수 있습니다.')
+    }
     abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
@@ -68,85 +76,105 @@ export function StoryView() {
     }
   }
 
+  if (!scene) return null
+
   const onDeleteScene = () => {
     if (project.scenes.length <= 1) return
     if (window.confirm(`“${scene.title}” 장면을 삭제할까요?`)) deleteScene(scene.id)
   }
 
   const sceneIndex = orderedScenes.findIndex((item) => item.id === scene.id)
+  const totalShots = orderedScenes.reduce((sum, item) => sum + item.shots.length, 0)
 
   return (
-    <section className="page">
-      <PageHeader eyebrow="STORY ARCHITECT" title="아이디어를 장면으로 구조화합니다." description="로컬 규칙 기반 초안과 선택적 AI 보조를 사용하고, Scene 사이의 의도된 변화는 Transition Event로 기록합니다." />
+    <section className="page story-page">
+      <PageHeader eyebrow="STORY" title="아이디어를 장면으로 구조화합니다." description="아이디어에서 Scene 구조와 연속성 상태까지 한 흐름에서 정리합니다." />
 
-      <div className="idea-builder panel">
-        <div className="idea-copy"><span className="eyebrow">NATURAL LANGUAGE INPUT</span><h2>무슨 영상인지 평범한 문장으로 적으세요.</h2><p>AI 키가 없어도 규칙 기반 Beat를 만들 수 있습니다. BYOK는 선택 기능입니다.</p></div>
-        <textarea value={idea} onChange={(event) => setIdea(event.target.value)} aria-label="영상 아이디어" />
-        <div className="idea-actions"><button className="secondary-button" onClick={() => setShowDraft(true)}><Sparkles size={16} /> 로컬 비트 만들기</button><button className="primary-button" disabled={running} onClick={runAI}><WandSparkles size={16} /> {running ? 'AI 생성 중…' : 'AI 스토리 만들기'}</button></div>
-      </div>
-
-      <div className={`ai-connection ${aiConfigOpen ? 'open' : ''}`}>
-        <div className="ai-connection-summary">
-          <div className="ai-connection-icon"><WandSparkles size={17} /></div>
-          <div><span className="eyebrow">OPTIONAL AI ASSIST</span><strong>{activeProvider.config.label} · {model}</strong><small>{apiKey ? '키가 현재 세션 메모리에 설정됨' : '키 없음 · 로컬 규칙 기반 기능은 계속 사용 가능'}</small></div>
-          <StatusPill tone={apiKey && acknowledgedRisk ? 'success' : 'warning'}>{apiKey && acknowledgedRisk ? 'Session ready' : 'Browser direct'}</StatusPill>
-          <button className="secondary-button ai-settings-toggle" onClick={() => setAiConfigOpen((value) => !value)} aria-expanded={aiConfigOpen}><Settings2 size={15} /> 설정 <ChevronDown size={14} /></button>
+      <section className="story-idea-surface" aria-labelledby="story-idea-title">
+        <div className="story-section-heading">
+          <div><span className="eyebrow">IDEA</span><h2 id="story-idea-title">무슨 영상인지 평범한 문장으로 적으세요.</h2></div>
+          <p>AI 키가 없어도 로컬 규칙으로 장면 초안을 만들 수 있습니다.</p>
         </div>
-        {aiConfigOpen ? <div className="ai-config-body">
+        <textarea className="story-idea-input" value={idea} onChange={(event) => setIdea(event.target.value)} aria-label="영상 아이디어" />
+        <div className="story-idea-footer">
+          <span>{idea.trim().length ? `${idea.trim().length}자` : '아이디어를 입력하세요'}</span>
+          <div className="story-idea-actions">
+            <button className="secondary-button" onClick={() => setShowDraft((value) => !value)}><Sparkles size={16} /> {showDraft ? '로컬 초안 숨기기' : '로컬 초안'}</button>
+            <button className="primary-button" disabled={running} onClick={runAI}><WandSparkles size={16} /> {running ? 'AI 생성 중…' : 'AI로 확장'}</button>
+          </div>
+        </div>
+      </section>
+
+      {showDraft ? <section className="story-draft-shelf" aria-label="로컬 규칙 기반 초안"><div className="story-draft-head"><strong>로컬 초안</strong><span>프로젝트에 자동 적용되지 않습니다.</span></div><div className="beat-draft-grid compact">{draft.map((beat, index) => <article key={beat.id} className="beat-card"><span>{String(index + 1).padStart(2, '0')} · {beat.label}</span><strong>{beat.purpose}</strong><p>{beat.prompt}</p></article>)}</div></section> : null}
+
+      <section className={`story-ai-bar ${aiConfigOpen ? 'open' : ''}`}>
+        <div className="story-ai-summary">
+          <WandSparkles size={17} />
+          <div><strong>AI Assist</strong><span>{activeProvider.config.label} · {model} · {apiKey ? '세션 키 설정됨' : '키 없음'}</span></div>
+          <StatusPill tone={apiKey && acknowledgedRisk ? 'success' : 'warning'}>{apiKey && acknowledgedRisk ? 'Ready' : 'Optional'}</StatusPill>
+          <button className="quiet-button" onClick={() => setAiConfigOpen((value) => !value)} aria-expanded={aiConfigOpen}><Settings2 size={15} /> 설정 <ChevronDown size={14} /></button>
+        </div>
+        {aiConfigOpen ? <div className="ai-config-body story-ai-config">
           <div className="ai-config-grid">
             <label><span>Provider</span><select value={providerId} onChange={(event) => setProvider(event.target.value as AIProviderId)}><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="anthropic">Anthropic</option></select></label>
             <label><span>Model</span><input value={model} onChange={(event) => setModel(event.target.value)} /></label>
-            <label className="api-key-field"><span><KeyRound size={14} /> {activeProvider.config.apiKeyLabel}</span><div><input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="현재 탭의 메모리에만 유지" /><button type="button" onClick={clearKey}>지우기</button></div></label>
+            <label className="api-key-field"><span><KeyRound size={14} /> {activeProvider.config.apiKeyLabel}</span><div><input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} placeholder="현재 탭 메모리에만 유지" /><button type="button" onClick={clearKey}>지우기</button></div></label>
           </div>
           <div className="security-note compact"><ShieldAlert size={16} /><div><strong>Browser-direct는 실험적 연결 방식입니다.</strong><p>{activeProvider.config.securityNote} 키는 프로젝트나 브라우저 저장소에 기록하지 않습니다.</p><label><input type="checkbox" checked={acknowledgedRisk} onChange={(event) => setAcknowledgedRisk(event.target.checked)} /> 이 탭에서 직접 API를 호출한다는 점을 이해했습니다.</label></div></div>
         </div> : null}
-        {aiStatus ? <p className="inline-message" role="status">{aiStatus}</p> : null}
-      </div>
+        {aiStatus ? <p className="inline-message story-ai-status" role="status">{aiStatus}</p> : null}
+      </section>
 
       {aiDraft ? (
-        <div className="panel ai-draft-panel">
-          <div className="panel-heading"><div><span className="eyebrow">AI DRAFT</span><h2>{aiDraft.logline}</h2></div><button className="primary-button" onClick={() => { if (window.confirm('현재 Scene 구성을 AI 초안으로 교체할까요? 자산 라이브러리는 유지됩니다.')) { applyAIStoryDraft(aiDraft); setAiStatus('AI 초안을 프로젝트에 적용했습니다. 기존 Scene 구성은 교체되었습니다.') } }}>프로젝트에 적용</button></div>
-          <div className="beat-draft-grid">{aiDraft.scenes.map((item, index) => <article key={`${item.title}-${index}`} className="beat-card"><span>{String(index + 1).padStart(2, '0')} · {item.emotionalBeat}</span><strong>{item.title}</strong><p>{item.purpose}</p><small>{item.shots.length} shots · {item.durationSec}s · {item.locationName ?? 'Unbound'}</small></article>)}</div>
-        </div>
+        <section className="story-draft-shelf ai-draft-panel">
+          <div className="story-draft-head"><div><span className="eyebrow">AI DRAFT</span><strong>{aiDraft.logline}</strong></div><button className="primary-button" onClick={() => { if (window.confirm('현재 Scene 구성을 AI 초안으로 교체할까요? 자산 라이브러리는 유지됩니다.')) { applyAIStoryDraft(aiDraft); setAiStatus('AI 초안을 프로젝트에 적용했습니다. 기존 Scene 구성은 교체되었습니다.') } }}>프로젝트에 적용</button></div>
+          <div className="beat-draft-grid compact">{aiDraft.scenes.map((item, index) => <article key={`${item.title}-${index}`} className="beat-card"><span>{String(index + 1).padStart(2, '0')} · {item.emotionalBeat}</span><strong>{item.title}</strong><p>{item.purpose}</p><small>{item.shots.length} shots · {item.durationSec}s · {item.locationName ?? 'Unbound'}</small></article>)}</div>
+        </section>
       ) : null}
 
-      {showDraft ? <div className="beat-draft-grid">{draft.map((beat, index) => <article key={beat.id} className="beat-card"><span>{String(index + 1).padStart(2, '0')} · {beat.label}</span><strong>{beat.purpose}</strong><p>{beat.prompt}</p></article>)}</div> : null}
+      <section className="story-logline" aria-labelledby="logline-title">
+        <div><span className="eyebrow">LOGLINE</span><strong id="logline-title">프로젝트의 한 문장</strong></div>
+        <textarea value={project.logline} onChange={(event) => updateProjectMeta({ logline: event.target.value })} aria-label="프로젝트 로그라인" />
+      </section>
 
-      <div className="story-summary panel"><div className="summary-number"><span>01</span><small>LOGLINE</small></div><textarea value={project.logline} onChange={(event) => updateProjectMeta({ logline: event.target.value })} aria-label="프로젝트 로그라인" /></div>
+      <section className="story-workspace" aria-label="장면 편집 워크스페이스">
+        <aside className="story-scene-nav" aria-label="장면 탐색">
+          <div className="story-scene-nav-head"><div><span className="eyebrow">SCENES</span><strong>{orderedScenes.length} scenes · {totalShots} shots</strong></div><button className="icon-button" aria-label="새 장면 추가" onClick={addScene}><Plus size={16} /></button></div>
+          <div className="story-scene-list">
+            {orderedScenes.map((item) => {
+              const needsSetup = !item.emotionalBeat.trim() || !item.purpose.trim()
+              return <button key={item.id} className={`story-scene-item ${selectedSceneId === item.id ? 'active' : ''}`} onClick={() => selectScene(item.id)}><span className="story-scene-number">{String(item.order).padStart(2, '0')}</span><span className="story-scene-copy"><strong>{item.title || '새 장면'}</strong><small>{item.emotionalBeat || (needsSetup ? '설정 필요' : 'Beat 미정')}</small></span><span className={`scene-state-dot ${needsSetup ? 'review' : 'ready'}`} aria-label={needsSetup ? '설정 필요' : '기본 설정 완료'} /></button>
+            })}
+          </div>
+          <button className="story-add-scene" onClick={addScene}><Plus size={15} /> 새 장면</button>
+        </aside>
 
-      <div className="scene-strip" aria-label="장면 목록">
-        {orderedScenes.map((item) => <button key={item.id} className={`scene-tab ${selectedSceneId === item.id ? 'active' : ''}`} onClick={() => selectScene(item.id)}><span>SCENE {String(item.order).padStart(2, '0')}</span><strong>{item.title}</strong><small>{item.emotionalBeat || 'Beat 미정'}</small></button>)}
-        <button className="scene-tab add-scene" onClick={addScene}><span>+</span><strong>Scene</strong><small>새 장면</small></button>
-      </div>
+        <div className="story-scene-editor">
+          <header className="story-scene-editor-head">
+            <div><span className="eyebrow">SCENE {String(scene.order).padStart(2, '0')}</span><h2>{scene.title || '새 장면'}</h2><p>{scene.purpose || '이 장면이 이야기에서 해야 할 일을 정의하세요.'}</p></div>
+            <div className="scene-editor-actions"><button className="icon-button" aria-label="Scene 위로 이동" disabled={sceneIndex <= 0} onClick={() => moveScene(scene.id, -1)}><ArrowUp size={15} /></button><button className="icon-button" aria-label="Scene 아래로 이동" disabled={sceneIndex < 0 || sceneIndex >= orderedScenes.length - 1} onClick={() => moveScene(scene.id, 1)}><ArrowDown size={15} /></button><button className="danger-button subtle" disabled={project.scenes.length <= 1} onClick={onDeleteScene}><Trash2 size={15} /> 삭제</button></div>
+          </header>
 
-      <div className="panel scene-editor">
-        <div className="panel-heading"><div><span className="eyebrow">SCENE EDITOR · {String(scene.order).padStart(2, '0')}</span><h2>{scene.title}</h2></div><div className="scene-editor-actions"><button className="icon-button" aria-label="Scene 위로 이동" disabled={sceneIndex <= 0} onClick={() => moveScene(scene.id, -1)}><ArrowUp size={15} /></button><button className="icon-button" aria-label="Scene 아래로 이동" disabled={sceneIndex < 0 || sceneIndex >= orderedScenes.length - 1} onClick={() => moveScene(scene.id, 1)}><ArrowDown size={15} /></button><button className="danger-button" disabled={project.scenes.length <= 1} onClick={onDeleteScene}><Trash2 size={15} /> 삭제</button></div></div>
-        <div className="scene-editor-grid">
-          <SceneField label="제목" value={scene.title} onChange={(title) => updateScene(scene.id, { title })} />
-          <SceneField label="Emotional beat" value={scene.emotionalBeat} onChange={(emotionalBeat) => updateScene(scene.id, { emotionalBeat })} />
-          <SceneField label="Purpose" value={scene.purpose} onChange={(purpose) => updateScene(scene.id, { purpose })} multiline />
-          <SceneField label="Time of day" value={scene.timeOfDay} onChange={(timeOfDay) => updateScene(scene.id, { timeOfDay })} />
-          <SceneField label="Weather" value={scene.weather ?? ''} onChange={(weather) => updateScene(scene.id, { weather })} />
-          <label className="edit-field"><span>Duration (sec)</span><input type="number" min="1" max="120" value={scene.durationSec} onChange={(event) => updateScene(scene.id, { durationSec: Math.max(1, Number(event.target.value) || 1) })} /></label>
-          <label className="edit-field"><span>Location</span><select value={scene.locationId ?? ''} onChange={(event) => updateScene(scene.id, { locationId: event.target.value || undefined })}><option value="">Unbound</option>{locations.map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}</select></label>
+          <div className="story-editor-tabs" role="tablist" aria-label="장면 편집 영역">
+            <button className={sceneEditorTab === 'details' ? 'active' : ''} onClick={() => setSceneEditorTab('details')} role="tab" aria-selected={sceneEditorTab === 'details'}>Details</button>
+            <button className={sceneEditorTab === 'cast' ? 'active' : ''} onClick={() => setSceneEditorTab('cast')} role="tab" aria-selected={sceneEditorTab === 'cast'}>Cast & Props</button>
+            <button className={sceneEditorTab === 'continuity' ? 'active' : ''} onClick={() => setSceneEditorTab('continuity')} role="tab" aria-selected={sceneEditorTab === 'continuity'}>Continuity <span>{scene.transitionEvents?.length ?? 0}</span></button>
+          </div>
+
+          <div className="story-editor-panel" role="tabpanel">
+            {sceneEditorTab === 'details' ? <div className="scene-editor-grid story-details-grid">
+              <SceneField label="제목" value={scene.title} onChange={(title) => updateScene(scene.id, { title })} />
+              <SceneField label="Emotional beat" value={scene.emotionalBeat} onChange={(emotionalBeat) => updateScene(scene.id, { emotionalBeat })} />
+              <SceneField label="Purpose" value={scene.purpose} onChange={(purpose) => updateScene(scene.id, { purpose })} multiline />
+              <SceneField label="Time of day" value={scene.timeOfDay} onChange={(timeOfDay) => updateScene(scene.id, { timeOfDay })} />
+              <SceneField label="Weather" value={scene.weather ?? ''} onChange={(weather) => updateScene(scene.id, { weather })} />
+              <label className="edit-field"><span>Duration (sec)</span><input type="number" min="1" max="120" value={scene.durationSec} onChange={(event) => updateScene(scene.id, { durationSec: Math.max(1, Number(event.target.value) || 1) })} /></label>
+              <label className="edit-field"><span>Location</span><select value={scene.locationId ?? ''} onChange={(event) => updateScene(scene.id, { locationId: event.target.value || undefined })}><option value="">Unbound</option>{locations.map((asset) => <option key={asset.id} value={asset.id}>{asset.name}</option>)}</select></label>
+            </div> : null}
+            {sceneEditorTab === 'cast' ? <div className="story-cast-panel"><CharacterBindingEditor characters={characters as CharacterAsset[]} bindings={scene.characterBindings} onChange={(characterBindings) => updateScene(scene.id, { characterBindings })} /><PropStateEditor props={props} characters={characters as CharacterAsset[]} characterBindings={scene.characterBindings} propIds={scene.propIds} propStates={scene.propStates ?? []} onPropIdsChange={(propIds) => updateScene(scene.id, { propIds })} onPropStatesChange={(propStates) => updateScene(scene.id, { propStates })} /></div> : null}
+            {sceneEditorTab === 'continuity' ? <TransitionEventEditor sceneId={scene.id} events={scene.transitionEvents ?? []} assets={project.assets} onAdd={addTransitionEvent} onRemove={removeTransitionEvent} /> : null}
+          </div>
         </div>
-        <CharacterBindingEditor characters={characters as CharacterAsset[]} bindings={scene.characterBindings} onChange={(characterBindings) => updateScene(scene.id, { characterBindings })} />
-        <PropStateEditor props={props} characters={characters as CharacterAsset[]} characterBindings={scene.characterBindings} propIds={scene.propIds} propStates={scene.propStates ?? []} onPropIdsChange={(propIds) => updateScene(scene.id, { propIds })} onPropStatesChange={(propStates) => updateScene(scene.id, { propStates })} />
-        <TransitionEventEditor sceneId={scene.id} events={scene.transitionEvents ?? []} assets={project.assets} onAdd={addTransitionEvent} onRemove={removeTransitionEvent} />
-      </div>
-
-      <section className={`scene-overview ${sceneOverviewOpen ? 'open' : ''}`}>
-        <button className="scene-overview-toggle" onClick={() => setSceneOverviewOpen((value) => !value)} aria-expanded={sceneOverviewOpen}>
-          <div><span className="eyebrow">SCENE OVERVIEW</span><strong>전체 장면 흐름 보기</strong><small>{orderedScenes.length} scenes · {orderedScenes.reduce((sum, item) => sum + item.shots.length, 0)} shots</small></div>
-          <ChevronDown size={16} />
-        </button>
-        {sceneOverviewOpen ? <div className="scene-stack">
-          {orderedScenes.map((item) => {
-            const location = project.assets.find((asset) => asset.id === item.locationId)
-            const characterNames = item.characterBindings.map((binding) => { const asset = project.assets.find((candidate) => candidate.id === binding.characterId); if (!asset || asset.type !== 'character') return undefined; const variant = asset.variants.find((candidate) => candidate.id === binding.variantId); return variant ? `${asset.name} · ${variant.name}` : asset.name }).filter(Boolean)
-            return <article key={item.id} className={`panel scene-card ${selectedSceneId === item.id ? 'selected' : ''}`} role="button" tabIndex={0} onClick={() => selectScene(item.id)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectScene(item.id) } }}><div className="scene-index">{String(item.order).padStart(2, '0')}</div><div className="scene-content"><div className="scene-card-head"><div><span className="eyebrow">{item.emotionalBeat}</span><h2>{item.title}</h2></div><StatusPill>{item.shots.length} shots</StatusPill></div><p className="scene-purpose">{item.purpose}</p><div className="scene-meta"><span><MapPin size={15} />{location?.name ?? 'Unbound'}</span><span><UsersRound size={15} />{characterNames.join(', ') || 'No characters'}</span><span><Clock3 size={15} />{item.durationSec}s · {item.timeOfDay || 'Time TBD'}{item.weather ? ` · ${item.weather}` : ''}</span></div><div className="shot-mini-list">{item.shots.map((shot) => <div key={shot.id} className="shot-mini"><span>{String(shot.order).padStart(2, '0')}</span><strong>{shot.title}</strong><small>{shot.framing} · {shot.focalLength}</small></div>)}</div></div></article>
-          })}
-        </div> : null}
       </section>
     </section>
   )
